@@ -14,7 +14,7 @@
 
 <br/>
 
-[![Gemini](https://img.shields.io/badge/Gemini_1.5_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://aistudio.google.com)
+[![Gemini](https://img.shields.io/badge/Gemini_2.5_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://aistudio.google.com)
 [![React](https://img.shields.io/badge/React_18-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
 [![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com)
@@ -61,7 +61,7 @@ Panics. Misses deadline.
 
 </div>
 
-CLUTCH is an **agentic AI system** with **5 autonomous agents** powered by **Google Gemini 1.5 Flash**. When you're overwhelmed with deadlines, CLUTCH doesn't just remind you — it triages your tasks, builds step-by-step rescue plans, auto-schedules your calendar, checks in on you proactively, and even drafts extension emails when a deadline is impossible.
+CLUTCH is an **agentic AI system** with **5 autonomous agents** powered by **Google Gemini 2.5 Flash**. When you're overwhelmed with deadlines, CLUTCH doesn't just remind you — it triages your tasks, builds step-by-step rescue plans, auto-schedules your calendar, checks in on you proactively, and even drafts extension emails when a deadline is impossible.
 
 **Built for the crisis moment. Not the planning moment.**
 
@@ -192,7 +192,7 @@ AI proactively messages you *without being asked*: *"90 min left on assignment, 
 │                  CLUTCH STACK                        │
 ├──────────────┬───────────────────────────────────────┤
 │  Frontend    │  React 18 + Vite + Custom CSS         │
-│  AI Core     │  Google Gemini 1.5 Flash              │
+│  AI Core     │  Google Gemini 2.5 Flash              │
 │  AI Method   │  JSON Mode (reliable, no limits)      │
 │  Vision      │  Gemini Multimodal (image → tasks)    │
 │  Voice       │  Web Speech API                       │
@@ -212,7 +212,7 @@ AI proactively messages you *without being asked*: *"90 min left on assignment, 
 
 | Google Tech | How CLUTCH Uses It |
 |---|---|
-| 🤖 **Gemini 1.5 Flash** | Core AI model powering all 5 agents |
+| 🤖 **Gemini 2.5 Flash** | Core AI model powering all 5 agents |
 | 📋 **Gemini JSON Mode** | Structured agentic responses — reliable & fast |
 | 👁️ **Gemini Vision / Multimodal** | Snap & Plan — photo → task extraction |
 | 🎙️ **Gemini Text Generation** | Autonomous check-in message generation |
