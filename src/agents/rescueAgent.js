@@ -1,4 +1,4 @@
-import { callGemini } from '../api/gemini'
+import { callGeminiJSON } from '../api/gemini'
 
 export const runRescueAgent = async (task) => {
   const now = new Date()
@@ -11,31 +11,45 @@ export const runRescueAgent = async (task) => {
 Task: "${task.name}"
 Deadline: ${task.deadline} (${minutesAvailable} minutes / ${hoursAvailable} hours from now)
 Current progress: ${task.progress || 0}%
-Estimated total hours: ${task.estimatedHours || 2}
-Extra context: ${task.description || 'none'}
+Estimated total hours: ${task.estimatedHours || task.estimated_hours || 2}
+Extra context: ${task.description || task.context || 'none'}
 
-Build a step-by-step rescue plan. Call create_rescue_plan with:
-1. Honest survival_probability (0–100). Consider: time available vs work remaining, typical human focus capacity.
-2. survival_label matching probability:
-   - 80-100% → DEFINITELY
-   - 60-79%  → POSSIBLE
-   - 40-59%  → RISKY
-   - 20-39%  → CRITICAL
-   - 0-19%   → IMPOSSIBLE
-3. Specific micro-action steps — NOT "work on task". Examples:
-   - "Open the dataset and identify the 3 key variables" (8 min)
-   - "Write the problem statement paragraph" (12 min)
-   Mark is_critical=true for steps that cannot be skipped.
-4. emergency_cuts: what to drop if running out of time
-5. motivational_message: short, honest, no toxic positivity`
+Build a step-by-step rescue plan. Be brutally honest about survival probability.
 
-  const response = await callGemini(prompt)
+Consider: time available vs work remaining, typical human focus capacity.
 
-  if (response.type === 'function_call' && response.functionName === 'create_rescue_plan') {
-    return response.args
-  }
+Survival labels:
+- 80-100% → DEFINITELY
+- 60-79%  → POSSIBLE
+- 40-59%  → RISKY
+- 20-39%  → CRITICAL
+- 0-19%   → IMPOSSIBLE
 
-  throw new Error('Rescue agent failed to return plan')
+Give specific micro-action steps — NOT "work on task". Examples:
+- "Open the dataset and identify the 3 key variables" (8 min)
+- "Write the problem statement paragraph" (12 min)
+
+Respond with this exact JSON structure:
+{
+  "task_name": "${task.name}",
+  "survival_probability": 65,
+  "survival_label": "POSSIBLE",
+  "total_time_needed": 120,
+  "time_available": ${minutesAvailable},
+  "steps": [
+    {
+      "step_number": 1,
+      "action": "specific action description",
+      "duration_minutes": 15,
+      "tips": "optional tip for this step",
+      "is_critical": true
+    }
+  ],
+  "emergency_cuts": "what to drop if running out of time",
+  "motivational_message": "short honest message, no toxic positivity"
+}`
+
+  return await callGeminiJSON(prompt)
 }
 
 export const runCanIMakeItAgent = async ({ taskName, deadline, progress, estimatedHours }) => {
@@ -54,13 +68,26 @@ Progress: ${progress}% done
 Work remaining: ~${minutesNeeded} minutes
 
 Be brutally honest. If it's impossible, say so and give a damage-control plan instead.
-Call create_rescue_plan with full analysis.`
 
-  const response = await callGemini(prompt)
+Respond with this exact JSON structure:
+{
+  "task_name": "${taskName}",
+  "survival_probability": 45,
+  "survival_label": "RISKY",
+  "total_time_needed": ${minutesNeeded},
+  "time_available": ${minutesAvailable},
+  "steps": [
+    {
+      "step_number": 1,
+      "action": "specific action",
+      "duration_minutes": 10,
+      "tips": "helpful tip",
+      "is_critical": true
+    }
+  ],
+  "emergency_cuts": "what to skip if desperate",
+  "motivational_message": "honest encouragement"
+}`
 
-  if (response.type === 'function_call' && response.functionName === 'create_rescue_plan') {
-    return response.args
-  }
-
-  throw new Error('Analysis failed')
+  return await callGeminiJSON(prompt)
 }

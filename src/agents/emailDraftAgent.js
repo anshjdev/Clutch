@@ -1,4 +1,4 @@
-import { callGemini } from '../api/gemini'
+import { callGeminiJSON } from '../api/gemini'
 
 export const runEmailDraftAgent = async (task, rescuePlan) => {
   const daysToAdd = rescuePlan.survival_label === 'IMPOSSIBLE' ? 3 : 2
@@ -17,18 +17,22 @@ Situation: ${rescuePlan.survival_label}
 Current progress: ${task.progress || 0}% complete
 Suggested new deadline: ${newDeadlineStr}
 
-Call draft_extension_email with:
+Write a professional email:
 - Professional subject line
 - A clear, honest body: acknowledge missing deadline, brief reason, commitment, proposed new date
 - Keep it under 3 paragraphs
 - Tone: semi-formal (professional but human)
-- Do NOT use excuses — focus on solution and commitment`
+- Do NOT use excuses — focus on solution and commitment
 
-  const response = await callGemini(prompt)
+Respond with this exact JSON structure:
+{
+  "subject": "email subject line",
+  "body": "full email body text",
+  "tone": "semi-formal",
+  "proposed_new_deadline": "${newDeadlineStr}",
+  "reason_summary": "one sentence summary of why extension is needed"
+}`
 
-  if (response.type === 'function_call' && response.functionName === 'draft_extension_email') {
-    return { ...response.args, proposed_new_deadline: newDeadlineStr }
-  }
-
-  throw new Error('Email draft agent failed')
+  const result = await callGeminiJSON(prompt)
+  return { ...result, proposed_new_deadline: newDeadlineStr }
 }

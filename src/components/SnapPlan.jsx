@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { callGeminiVision } from '../api/gemini'
+import { callGeminiVisionJSON } from '../api/gemini'
 import { useTaskStore } from '../store/taskStore'
 
 export default function SnapPlan() {
@@ -26,16 +26,29 @@ export default function SnapPlan() {
     setLoading(true)
     setError('')
     try {
-      const response = await callGeminiVision(
+      const response = await callGeminiVisionJSON(
         preview.raw,
         preview.mimeType,
         `This image contains tasks, assignments, a timetable, notes, or a to-do list.
-Extract every task or deadline visible. Call extract_tasks_from_text with all findings.
-For any text you can see: task name, deadline (infer date from context), estimated hours.`
+Extract every task or deadline visible.
+For any text you can see: task name, deadline (infer date from context), estimated hours.
+
+Respond with this exact JSON structure:
+{
+  "extracted_tasks": [
+    {
+      "name": "task name",
+      "deadline": "ISO date or human readable date",
+      "estimated_hours": 2,
+      "context": "brief context about this task"
+    }
+  ],
+  "summary": "brief summary of what was found in the image"
+}`
       )
 
-      if (response.type === 'function_call' && response.functionName === 'extract_tasks_from_text') {
-        setResult(response.args)
+      if (response?.extracted_tasks?.length) {
+        setResult(response)
       } else {
         setError('Could not extract tasks from image. Try a clearer photo.')
       }

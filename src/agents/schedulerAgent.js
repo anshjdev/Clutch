@@ -1,4 +1,4 @@
-import { callGemini } from '../api/gemini'
+import { callGeminiJSON } from '../api/gemini'
 
 // Generate free time slots for next 3 days (used when no calendar connected)
 const getDefaultFreeSlots = () => {
@@ -45,19 +45,28 @@ ${tasks.map(t =>
 Available free slots:
 ${freeSlots.map(s => `• ${s.date} from ${s.start} to ${s.end} (${s.duration} min)`).join('\n')}
 
-Call schedule_calendar_blocks with optimal time block assignments.
 Rules:
 - Schedule CRITICAL tasks first in the earliest slots
 - 10-minute buffer between tasks
 - Max 90-minute focus blocks (split longer tasks)
 - Assign color: CRITICAL→"#FF2D2D", HIGH→"#FF7A2B", MEDIUM→"#3B8EEA", LOW→"#5E5C70"
-- Respect deadlines — don't schedule after the deadline`
+- Respect deadlines — don't schedule after the deadline
 
-  const response = await callGemini(prompt)
+Respond with this exact JSON structure:
+{
+  "blocks": [
+    {
+      "task_name": "task name",
+      "date": "YYYY-MM-DD",
+      "start_time": "09:00",
+      "end_time": "10:30",
+      "duration_minutes": 90,
+      "priority": "CRITICAL",
+      "color": "#FF2D2D"
+    }
+  ],
+  "scheduling_note": "brief note about the schedule"
+}`
 
-  if (response.type === 'function_call' && response.functionName === 'schedule_calendar_blocks') {
-    return response.args
-  }
-
-  throw new Error('Scheduler agent failed')
+  return await callGeminiJSON(prompt)
 }

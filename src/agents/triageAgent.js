@@ -1,11 +1,11 @@
-import { callGemini } from '../api/gemini'
+import { callGeminiJSON } from '../api/gemini'
 
 export const runTriageAgent = async (rawInput) => {
   const now = new Date().toISOString()
 
   const prompt = `TRIAGE REQUEST — Current time: ${now}
 
-The user dumped the following tasks and is overwhelmed. Analyze every task and call triage_tasks with a full priority matrix.
+The user dumped the following tasks and is overwhelmed. Analyze every task and return a structured priority matrix.
 
 User input:
 "${rawInput}"
@@ -18,22 +18,35 @@ For each task:
 - reason: one sharp sentence explaining why this rank
 
 Flag any tasks where the deadline is mathematically impossible given the time remaining.
-Call triage_tasks now.`
 
-  const response = await callGemini(prompt)
-
-  if (response.type === 'function_call' && response.functionName === 'triage_tasks') {
-    // Attach stable IDs to each task
-    return {
-      ...response.args,
-      tasks: response.args.tasks.map((t, i) => ({
-        ...t,
-        id: t.id || `task-${Date.now()}-${i}`,
-      })),
+Respond with this exact JSON structure:
+{
+  "tasks": [
+    {
+      "id": "task-1",
+      "name": "task name here",
+      "deadline": "ISO date string or human readable",
+      "urgency_score": 8,
+      "impact_score": 9,
+      "priority_label": "CRITICAL",
+      "estimated_hours": 3,
+      "reason": "why this priority"
     }
-  }
+  ],
+  "summary": "one sentence overview of the situation",
+  "warning": "optional warning about impossible deadlines or null"
+}`
 
-  throw new Error('Triage agent did not return structured data')
+  const result = await callGeminiJSON(prompt)
+
+  // Attach stable IDs
+  return {
+    ...result,
+    tasks: (result.tasks || []).map((t, i) => ({
+      ...t,
+      id: t.id || `task-${Date.now()}-${i}`,
+    })),
+  }
 }
 
 export const runExtractAgent = async (rawText) => {
@@ -42,15 +55,21 @@ export const runExtractAgent = async (rawText) => {
 Extract every task from this raw input (voice transcript, typed panic, or image text):
 "${rawText}"
 
-Call extract_tasks_from_text with all tasks found.
 For deadlines, infer relative ones: "tomorrow" → actual date, "Friday" → nearest Friday.
-Estimate hours honestly. If deadline is unclear, set it to 24h from now.`
+Estimate hours honestly. If deadline is unclear, set it to 24h from now.
 
-  const response = await callGemini(prompt)
+Respond with this exact JSON structure:
+{
+  "extracted_tasks": [
+    {
+      "name": "task name",
+      "deadline": "ISO date string",
+      "estimated_hours": 2,
+      "context": "brief context about this task"
+    }
+  ],
+  "summary": "brief summary of what was extracted"
+}`
 
-  if (response.type === 'function_call' && response.functionName === 'extract_tasks_from_text') {
-    return response.args
-  }
-
-  throw new Error('Extract agent failed')
+  return await callGeminiJSON(prompt)
 }
