@@ -3,7 +3,24 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY
 const genAI = new GoogleGenerativeAI(API_KEY)
 
-// ─── All function declarations for agentic behavior ───
+const delay = ms => new Promise(r => setTimeout(r, ms))
+
+const callWithRetry = async (fn, retries = 3) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await delay(i * 1500)
+      return await fn()
+    } catch (err) {
+      const is429 = err?.message?.includes('429') || err?.status === 429
+      if (is429 && i < retries - 1) {
+        await delay((i + 1) * 2000)
+      } else {
+        throw err
+      }
+    }
+  }
+}
+
 const CLUTCH_TOOLS = [
   {
     functionDeclarations: [
@@ -151,49 +168,48 @@ RULES:
 - ALWAYS call a function — never return plain text for data requests
 - Time estimates must be realistic, not optimistic`
 
-// ─── Core call ───
 export const callGemini = async (prompt, history = []) => {
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash',
-    tools: CLUTCH_TOOLS,
-    systemInstruction: SYSTEM_INSTRUCTION,
+  return callWithRetry(async () => {
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.0-flash',
+      tools: CLUTCH_TOOLS,
+      systemInstruction: SYSTEM_INSTRUCTION,
+    })
+    const chat = model.startChat({ history })
+    const result = await chat.sendMessage(prompt)
+    const response = result.response
+    const calls = response.functionCalls()
+    if (calls && calls.length > 0) {
+      return { type: 'function_call', functionName: calls[0].name, args: calls[0].args }
+    }
+    return { type: 'text', text: response.text() }
   })
-
-  const chat = model.startChat({ history })
-  const result = await chat.sendMessage(prompt)
-  const response = result.response
-  const calls = response.functionCalls()
-
-  if (calls && calls.length > 0) {
-    return { type: 'function_call', functionName: calls[0].name, args: calls[0].args }
-  }
-  return { type: 'text', text: response.text() }
 }
 
-// ─── Vision call (Snap & Plan) ───
 export const callGeminiVision = async (imageBase64, mimeType, prompt) => {
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash',
-    tools: CLUTCH_TOOLS,
-    systemInstruction: SYSTEM_INSTRUCTION,
+  return callWithRetry(async () => {
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.0-flash',
+      tools: CLUTCH_TOOLS,
+      systemInstruction: SYSTEM_INSTRUCTION,
+    })
+    const result = await model.generateContent([
+      { inlineData: { data: imageBase64, mimeType } },
+      prompt,
+    ])
+    const response = result.response
+    const calls = response.functionCalls()
+    if (calls && calls.length > 0) {
+      return { type: 'function_call', functionName: calls[0].name, args: calls[0].args }
+    }
+    return { type: 'text', text: response.text() }
   })
-
-  const result = await model.generateContent([
-    { inlineData: { data: imageBase64, mimeType } },
-    prompt,
-  ])
-  const response = result.response
-  const calls = response.functionCalls()
-
-  if (calls && calls.length > 0) {
-    return { type: 'function_call', functionName: calls[0].name, args: calls[0].args }
-  }
-  return { type: 'text', text: response.text() }
 }
 
-// ─── Simple text generation (for check-in messages) ───
 export const callGeminiText = async (prompt) => {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
-  const result = await model.generateContent(prompt)
-  return result.response.text()
+  return callWithRetry(async () => {
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+    const result = await model.generateContent(prompt)
+    return result.response.text()
+  })
 }
