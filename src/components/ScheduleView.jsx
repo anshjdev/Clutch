@@ -21,8 +21,9 @@ export default function ScheduleView() {
       const result = await runSchedulerAgent(pending)
       setScheduleBlocks(result.blocks || [])
       setNote(result.scheduling_note || '')
-    } catch {
-      setError('Scheduler failed. Check your API key.')
+    } catch (err) {
+      console.error(err)
+      setError(`Scheduler failed: ${err.message || 'Check your API key.'}`)
     } finally {
       setLoading(false)
     }

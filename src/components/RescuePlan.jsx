@@ -31,8 +31,9 @@ export default function RescuePlan() {
     try {
       const result = await runRescueAgent(task)
       setRescuePlan(task.id, result)
-    } catch {
-      setError('Failed to generate rescue plan. Check your API key.')
+    } catch (err) {
+      console.error(err)
+      setError(`Failed to generate rescue plan: ${err.message || 'Check your API key.'}`)
     } finally {
       setLoading(false)
     }

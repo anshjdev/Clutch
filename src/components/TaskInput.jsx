@@ -22,8 +22,9 @@ export default function TaskInput({ onDone }) {
         onDone?.()
         setView('triage')
       }
-    } catch (e) {
-      setError('Failed to extract tasks. Check your API key.')
+    } catch (err) {
+      console.error(err)
+      setError(`Failed to extract tasks: ${err.message || 'Check your API key.'}`)
     } finally {
       setLoading(false)
     }

@@ -32,7 +32,8 @@ export default function TriageBoard() {
       setTriageResult(result)
       applyTriage(result.tasks)
     } catch (e) {
-      setError('Triage failed. Check your Gemini API key in .env')
+      console.error(e)
+      setError(`Triage failed: ${e.message || 'Check your Gemini API key'}`)
     } finally {
       setLoading(false)
     }

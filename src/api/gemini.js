@@ -58,7 +58,7 @@ CRITICAL RULE: You MUST respond ONLY with valid JSON. No text before or after th
 export const callGeminiJSON = async (prompt) => {
   return callWithRetry(async () => {
     const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: 'application/json',
       },
@@ -82,7 +82,7 @@ export const callGeminiJSON = async (prompt) => {
 export const callGeminiVisionJSON = async (imageBase64, mimeType, prompt) => {
   return callWithRetry(async () => {
     const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: 'application/json',
       },
@@ -106,7 +106,7 @@ export const callGeminiVisionJSON = async (imageBase64, mimeType, prompt) => {
  */
 export const callGeminiText = async (prompt) => {
   return callWithRetry(async () => {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
     const result = await model.generateContent(prompt)
     return result.response.text()
   })

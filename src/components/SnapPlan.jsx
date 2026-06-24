@@ -52,8 +52,9 @@ Respond with this exact JSON structure:
       } else {
         setError('Could not extract tasks from image. Try a clearer photo.')
       }
-    } catch {
-      setError('Vision analysis failed. Check your API key.')
+    } catch (err) {
+      console.error(err)
+      setError(`Vision analysis failed: ${err.message || 'Check your API key.'}`)
     } finally {
       setLoading(false)
     }
