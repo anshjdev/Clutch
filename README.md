@@ -341,7 +341,7 @@ clutch/
 
 ## 🌐 DEPLOYMENT
 
-**Live App:** [clutch-vibe2ship.web.app](Hosting URL: https://clutch-vibe2ship-2d7ed.web.app)
+**Live App:** (Hosting URL: https://clutch-vibe2ship-2d7ed.web.app)
 
 ```bash
 # Deploy to Firebase Hosting
